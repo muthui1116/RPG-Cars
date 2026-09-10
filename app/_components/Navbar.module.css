@@ -1,0 +1,120 @@
+/* the whole navbar strip, light sky blue background */
+.navbar {
+  background-color: #eff4fa; /* very light sky blue */
+  width: 100%;
+}
+
+/* holds the logo + buttons + hamburger, this is where the 2px margin goes */
+.navContent {
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+  margin-left: 30px;
+  margin-right: 30px;
+  padding: 10px 0;
+}
+
+/* logo text (now a Link, so it's an <a> — remove underline) */
+.logo {
+  text-decoration: none;
+  font-weight: bold;
+  font-size: 1.3rem;
+  color: #01579b; /* deep blue, reads well on light sky blue */
+}
+
+/* container for login/register buttons on big screens */
+/* margin-left: auto pushes this all the way to the right, next to the logo */
+.navButtons {
+  display: flex;
+  gap: 10px;
+  margin-left: auto;
+}
+
+/* REGISTER button: rounded, blue background */
+/* note: this is now a Next.js <Link> (renders as <a>), so we reset link defaults */
+.registerBtn {
+  display: inline-block;
+  text-decoration: none;
+  background-color: #2196f3;
+  color: #ffffff;
+  border: none;
+  padding: 8px 20px;
+  border-radius: 20px;
+  cursor: pointer;
+  font-weight: 600;
+  transition: background-color 0.3s ease, box-shadow 0.3s ease;
+}
+
+/* on hover, a deeper professional blue + soft shadow */
+.registerBtn:hover {
+  background-color: #0d47a1;
+  box-shadow: 0 2px 8px rgba(13, 71, 161, 0.4);
+}
+
+/* LOGIN button: white background, blue border/text to match theme */
+.loginBtn {
+  display: inline-block;
+  text-decoration: none;
+  background-color: #ffffff;
+  color: #2196f3;
+  border: 1.5px solid #2196f3;
+  padding: 8px 20px;
+  border-radius: 20px;
+  cursor: pointer;
+  font-weight: 600;
+  transition: background-color 0.3s ease, color 0.3s ease;
+}
+
+/* on hover, a subtle professional fill instead of loud color */
+.loginBtn:hover {
+  background-color: #e3f2fd;
+  color: #0d47a1;
+  border-color: #0d47a1;
+}
+
+/* hamburger icon, hidden by default (desktop) */
+.hamburger {
+  display: none;
+  flex-direction: column;
+  justify-content: space-between;
+  width: 25px;
+  height: 18px;
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  padding: 0;
+  margin-left: auto; /* keeps it pinned to the right when navButtons is hidden */
+}
+
+.bar {
+  height: 3px;
+  width: 100%;
+  background-color: #01579b;
+  border-radius: 2px;
+}
+
+/* dropdown menu for small screens, hidden by default */
+.mobileMenu {
+  display: none;
+}
+
+/* ===== small screens ===== */
+@media (max-width: 640px) {
+  /* hide the normal button row */
+  .navButtons {
+    display: none;
+  }
+
+  /* show the hamburger icon */
+  .hamburger {
+    display: flex;
+  }
+
+  /* when menu is open, show buttons stacked below navbar */
+  .mobileMenu {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    padding: 10px 2px 15px;
+  }
+}
