@@ -1,7 +1,9 @@
-import Header from "./_components/Navbar";
+import ProductsList from "./_components/ProductList";
 
 export default function Home() {
   return (
-    <h1 className="text-3xl font-bold underline">hello</h1>
+      <div className="px-4 py-5 sm:px-6 sm:py-6">
+          <ProductsList />
+        </div>
   );
 }
