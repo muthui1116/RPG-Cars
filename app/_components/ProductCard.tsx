@@ -1,5 +1,8 @@
+// ProductCard.tsx
 import Image from "next/image";
 import Link from "next/link";
+import EditButton from "./EditButton";
+import DeleteButton from "./DeleteButton";
 
 type Product = {
   id: number;
@@ -11,42 +14,55 @@ type Product = {
   description: string | null;
 };
 
-export default function ProductCard({ product }: { product: Product }) {
+export default function ProductCard({
+  product,
+  isAdmin = false,
+}: {
+  product: Product;
+  isAdmin?: boolean;
+}) {
   return (
-    <li className="group min-w-0 bg-white rounded-lg border border-gray-200 overflow-hidden shadow-sm hover:shadow-md transition-shadow duration-200">
-      <Link href={`/products/${product.slug}`}>
-        <div className="relative aspect-[4/3] w-full overflow-hidden bg-white">
+    <li className="flex flex-col border border-gray-200 rounded-xl overflow-hidden bg-white h-full">
+      <Link href={`/products/${product.slug}`} className="block">
+        <div className="relative aspect-square bg-gray-100">
           <Image
             src={product.image_url}
             alt={product.name}
             fill
-            sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 25vw"
-            className="block h-full w-full object-cover transition-transform duration-300 group-hover:scale-105"
+            className="object-cover"
+            sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 20vw"
           />
         </div>
+      </Link>
 
-        <div className="p-3 space-y-1">
-          {product.category && (
-            <span className="inline-block text-[11px] font-medium uppercase tracking-wide text-gray-500 bg-gray-100 rounded-full px-2 py-0.5">
-              {product.category}
-            </span>
-          )}
-
-          <h3 className="font-semibold text-gray-900 truncate">
+      <div className="flex flex-col flex-1 p-3">
+        <Link href={`/products/${product.slug}`}>
+          <h3 className="text-sm font-medium text-gray-900 line-clamp-2">
             {product.name}
           </h3>
+        </Link>
+        <p className="mt-1 text-sm font-semibold text-gray-900">
+          KSh {product.price.toLocaleString()}
+        </p>
 
-          {product.description && (
-            <p className="text-sm text-gray-500 line-clamp-2">
-              {product.description}
-            </p>
+        <div className="flex-1" />
+
+        <div className="flex gap-2 mt-3 pt-3 border-t border-gray-100">
+          {isAdmin ? (
+            <>
+              <EditButton product={product} isAdmin={isAdmin} />
+              <DeleteButton id={product.id} isAdmin={isAdmin} />
+            </>
+          ) : (
+            <Link
+              href={`/products/${product.slug}`}
+              className="flex-1 text-center text-sm font-medium text-gray-900 hover:text-white hover:bg-gray-900 border border-gray-300 rounded-lg px-3 py-1.5 transition-colors"
+            >
+              View Details
+            </Link>
           )}
-
-          <p className="pt-1 text-base font-bold text-gray-900">
-            ${Number(product.price).toFixed(2)}
-          </p>
         </div>
-      </Link>
+      </div>
     </li>
   );
 }

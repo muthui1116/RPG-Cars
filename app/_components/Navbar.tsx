@@ -2,11 +2,14 @@
 
 import { useState } from "react";
 import Link from "next/link";
+import { useSession, signOut } from "next-auth/react";
 import styles from "./Navbar.module.css";
 
 export default function Navbar() {
   // this state controls whether the mobile menu (hamburger dropdown) is open or closed
   const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const { data: session, status } = useSession();
+  const isLoggedIn = status === "authenticated";
 
   const toggleMenu = () => {
     setIsMenuOpen(!isMenuOpen);
@@ -22,12 +25,28 @@ export default function Navbar() {
 
         {/* normal buttons, visible on big screens, hidden on small screens */}
         <div className={styles.navButtons}>
-          <Link href="/login" className={styles.loginBtn}>
-            Login
-          </Link>
-          <Link href="/register" className={styles.registerBtn}>
-            Register
-          </Link>
+          {isLoggedIn ? (
+            <>
+              <span className={styles.userGreeting}>
+                {session.user?.name ?? session.user?.email}
+              </span>
+              <button
+                onClick={() => signOut({ callbackUrl: "/" })}
+                className={styles.loginBtn}
+              >
+                Logout
+              </button>
+            </>
+          ) : (
+            <>
+              <Link href="/login" className={styles.loginBtn}>
+                Login
+              </Link>
+              <Link href="/register" className={styles.registerBtn}>
+                Register
+              </Link>
+            </>
+          )}
         </div>
 
         {/* hamburger icon, only visible on small screens */}
@@ -41,12 +60,23 @@ export default function Navbar() {
       {/* dropdown menu that shows on small screens when hamburger is clicked */}
       {isMenuOpen && (
         <div className={styles.mobileMenu}>
-          <Link href="/login" className={styles.loginBtn}>
-            Login
-          </Link>
-          <Link href="/register" className={styles.registerBtn}>
-            Register
-          </Link>
+          {isLoggedIn ? (
+            <button
+              onClick={() => signOut({ callbackUrl: "/" })}
+              className={styles.loginBtn}
+            >
+              Logout
+            </button>
+          ) : (
+            <>
+              <Link href="/login" className={styles.loginBtn}>
+                Login
+              </Link>
+              <Link href="/register" className={styles.registerBtn}>
+                Register
+              </Link>
+            </>
+          )}
         </div>
       )}
     </nav>

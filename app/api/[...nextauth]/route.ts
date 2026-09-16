@@ -41,11 +41,32 @@ const nextAuth = NextAuth({
 				const valid = await bcrypt.compare(password, user.password);
 				if (!valid) return null;
 
-				return { id: String(user.id), name: user.name, email: user.email };
+				return {
+					id: String(user.id),
+					name: user.name,
+					email: user.email,
+					role: Number(user.role),
+				};
 			},
 		}),
 	],
 	callbacks: {
+		async jwt({ token, user }) {
+			if (user?.role !== undefined) {
+				token.role = Number(user.role);
+			} else if (token.role === undefined && token.email) {
+				const result = await db.query<{ role: number | string }>(
+					"SELECT role FROM users WHERE email = $1",
+					[token.email]
+				);
+				if (result.rows[0]) token.role = Number(result.rows[0].role);
+			}
+			return token;
+		},
+		async session({ session, token }) {
+			if (session.user) session.user.role = Number(token.role);
+			return session;
+		},
 		async signIn({ user, account }) {
 			if (account?.provider === "google") {
 				if (!user?.email) {

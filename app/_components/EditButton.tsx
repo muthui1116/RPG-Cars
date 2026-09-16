@@ -13,8 +13,16 @@ type Product = {
 	image_url: string;
 };
 
-export default function EditButton({ product }: { product: Product }) {
+export default function EditButton({
+	product,
+	isAdmin = false,
+}: {
+	product: Product;
+	isAdmin?: boolean;
+}) {
 	const [isOpen, setIsOpen] = useState(false);
+
+	if (!isAdmin) return null;
 
 	return (
 		<>

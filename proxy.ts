@@ -8,8 +8,6 @@ const PAGE_LOAD_LIMIT = 30;
 const PAGE_LOAD_LOCK_MINUTES = 3;
 
 function getClientIp(request: NextRequest): string {
-  // NextRequest.ip was removed in recent Next.js versions —
-  // this header is set by Vercel/most hosts/proxies instead.
   const forwardedFor = request.headers.get("x-forwarded-for");
   if (forwardedFor) return forwardedFor.split(",")[0].trim();
   return request.headers.get("x-real-ip") ?? "unknown";
@@ -38,5 +36,5 @@ export default auth(async function proxy(request: NextRequest) {
 });
 
 export const config = {
-  matcher: ["/((?!_next/static|_next/image|favicon.ico).*)"],
+  matcher: ["/((?!api/auth|_next/static|_next/image|favicon.ico).*)"],
 };

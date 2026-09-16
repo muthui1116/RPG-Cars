@@ -1,8 +1,9 @@
+// ProductsList.tsx
 import db from "../lib/db";
 import { auth } from "../api/[...nextauth]/route";
-// import { ROLES } from "../lib/roles";
+import { ROLES } from "../lib/roles";
 import ProductCard from "./ProductCard";
-import AddProductModal from "./AddProductModal";  
+import AddProductModal from "./AddProductModal";
 
 type Product = {
   id: number;
@@ -16,7 +17,7 @@ type Product = {
 
 export default async function ProductsList({ category }: { category?: string }) {
   const session = await auth();
-  // const isAdmin = session?.user?.role === ROLES.ADMIN;
+  const isAdmin = Number(session?.user?.role) === ROLES.ADMIN;
 
   const [result, categoryResult] = await Promise.all([
     db.query<Product>(
@@ -36,12 +37,36 @@ export default async function ProductsList({ category }: { category?: string }) 
   ]);
 
   const products = result.rows;
+  const categories = categoryResult.rows;
 
   return (
     <div>
-      <div className="flex items-center justify-between mb-4">
+      <div className="flex flex-wrap items-center justify-between gap-3 mb-6">
         <h2 className="text-xl font-bold text-gray-900">Products</h2>
-        { <AddProductModal />}
+        <div className="flex flex-wrap items-center gap-3">
+          <form method="get" className="flex items-center gap-3">
+            <select
+              id="category"
+              name="category"
+              defaultValue={category ?? ""}
+              className="rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm"
+            >
+              <option value="">All categories</option>
+              {categories.map(({ category: categoryName }) => (
+                <option key={categoryName} value={categoryName}>
+                  {categoryName}
+                </option>
+              ))}
+            </select>
+            <button
+              type="submit"
+              className="rounded-lg bg-gray-900 px-3 py-2 text-sm font-medium text-white"
+            >
+              Filter
+            </button>
+          </form>
+          {isAdmin && <AddProductModal />}
+        </div>
       </div>
 
       {products.length === 0 ? (
@@ -51,7 +76,7 @@ export default async function ProductsList({ category }: { category?: string }) 
       ) : (
         <ul className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-4">
           {products.map((product) => (
-            <ProductCard key={product.id} product={product} />
+            <ProductCard key={product.id} product={product} isAdmin={isAdmin} />
           ))}
         </ul>
       )}

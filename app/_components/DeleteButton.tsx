@@ -1,9 +1,16 @@
+// DeleteButton.tsx
 "use client";
 
 import { useTransition } from "react";
-import { deleteProduct } from "../_lib/actions/product";
+import { deleteProduct } from "../action/product";
 
-export default function DeleteButton({ id }: { id: number }) {
+export default function DeleteButton({
+	id,
+	isAdmin = false,
+}: {
+	id: number;
+	isAdmin?: boolean;
+}) {
 	const [isPending, startTransition] = useTransition();
 
 	function handleDelete() {
@@ -14,6 +21,8 @@ export default function DeleteButton({ id }: { id: number }) {
 			await deleteProduct(id);
 		});
 	}
+
+	if (!isAdmin) return null;
 
 	return (
 		<button
