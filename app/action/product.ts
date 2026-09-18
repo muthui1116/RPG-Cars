@@ -1,11 +1,9 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
-import { redirect } from "next/navigation";
 import sharp from "sharp";
-import { writeFile, mkdir } from "fs/promises";
-import path from "path";
 import db from "../lib/db";
+import { uploadImage } from "../lib/cloudinary";
 
 type ActionState = {
   success: boolean;
@@ -31,12 +29,6 @@ export async function addProduct(
   }
 
   try {
-    // ---- Make sure the uploads folder exists ----
-    // This creates public/uploads/ if it doesn't already exist.
-    // { recursive: true } means "don't error if it's already there."
-    const uploadDir = path.join(process.cwd(), "public", "uploads");
-    await mkdir(uploadDir, { recursive: true });
-
     // ---- Process and save the main image ----
     const mainImageBuffer = Buffer.from(await mainImageFile.arrayBuffer());
 
@@ -48,11 +40,7 @@ export async function addProduct(
 
     // Date.now() makes the filename unique so re-uploads never overwrite each other
     const mainFilename = `${slug}-main-${Date.now()}.webp`;
-    await writeFile(path.join(uploadDir, mainFilename), mainProcessed);
-
-    // This is the URL the browser will use to actually load the image —
-    // anything inside public/ is served from the root URL automatically.
-    const mainImageUrl = `/uploads/${mainFilename}`;
+    const mainImageUrl = await uploadImage(mainProcessed, mainFilename.replace(/\.webp$/, ""));
 
     // ---- Insert the product first, so we get its id back ----
     const productResult = await db.query(
@@ -82,9 +70,10 @@ export async function addProduct(
         .toBuffer();
 
       const galleryFilename = `${slug}-gallery-${Date.now()}-${i}.webp`;
-      await writeFile(path.join(uploadDir, galleryFilename), processed);
-
-      const imageUrl = `/uploads/${galleryFilename}`;
+      const imageUrl = await uploadImage(
+        processed,
+        galleryFilename.replace(/\.webp$/, "")
+      );
 
       await db.query(
         `INSERT INTO product_images (product_id, image_url, sort_order)
@@ -147,9 +136,6 @@ export async function updateProduct(
     // Only touch the file system / DB image column if a new file was actually chosen.
     // An empty file input still shows up in FormData, so we check size, not just existence.
     if (newImageFile && newImageFile.size > 0) {
-      const uploadDir = path.join(process.cwd(), "public", "uploads");
-      await mkdir(uploadDir, { recursive: true });
-
       const buffer = Buffer.from(await newImageFile.arrayBuffer());
 
       const processed = await sharp(buffer)
@@ -159,9 +145,7 @@ export async function updateProduct(
         .toBuffer();
 
       const filename = `${slug}-main-${Date.now()}.webp`;
-      await writeFile(path.join(uploadDir, filename), processed);
-
-      imageUrl = `/uploads/${filename}`;
+      imageUrl = await uploadImage(processed, filename.replace(/\.webp$/, ""));
     }
 
     // Build the query conditionally: only overwrite image_url if a new one was uploaded.

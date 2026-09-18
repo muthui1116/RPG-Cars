@@ -3,10 +3,6 @@ import Google from "next-auth/providers/google";
 import Credentials from "next-auth/providers/credentials";
 import bcrypt from "bcrypt";
 import db from "../../lib/db";
-// import { checkRateLimit } from "../../lib/rateLimit"; // Rate limiting disabled.
-
-// const LOGIN_ATTEMPT_LIMIT = 30; // Rate limiting disabled.
-// const LOGIN_LOCK_MINUTES = 5; // Rate limiting disabled.
 
 const nextAuth = NextAuth({
 	providers: [
@@ -21,18 +17,6 @@ const nextAuth = NextAuth({
 			},
 			authorize: async (credentials) => {
 				const { email, password } = credentials as { email: string; password: string };
-
-				/* Rate limiting disabled; original login check retained here.
-				const loginCheck = await checkRateLimit(
-					`login:${email}`,
-					LOGIN_ATTEMPT_LIMIT,
-					LOGIN_LOCK_MINUTES
-				);
-				if (!loginCheck.allowed) {
-					throw new Error("RateLimited");
-				}
-				*/
-
 				const result = await db.query("SELECT * FROM users WHERE email = $1", [email]);
 				const user = result.rows[0];
 
