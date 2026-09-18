@@ -10,6 +10,9 @@ type ActionState = {
   message: string;
 };
 
+const MAX_GALLERY_IMAGES = 5;
+const MAX_TOTAL_UPLOAD_BYTES = 4 * 1024 * 1024;
+
 function isUniqueViolation(error: unknown): boolean {
   return (
     !!error &&
@@ -35,6 +38,20 @@ export async function addProduct(
 
   if (!mainImageFile || mainImageFile.size === 0) {
     return { success: false, message: "Main image is required." };
+  }
+
+  const totalUploadBytes = [mainImageFile, ...galleryFiles].reduce(
+    (total, file) => total + (file?.size ?? 0),
+    0
+  );
+  if (galleryFiles.length > MAX_GALLERY_IMAGES) {
+    return { success: false, message: "You can upload up to 5 gallery images." };
+  }
+  if (totalUploadBytes > MAX_TOTAL_UPLOAD_BYTES) {
+    return {
+      success: false,
+      message: "The selected images are too large. Choose smaller images.",
+    };
   }
 
   try {

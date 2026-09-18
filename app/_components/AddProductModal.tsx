@@ -6,6 +6,33 @@ import Image from "next/image";
 import { addProduct } from "../action/addProduct";
 
 const initialState = { success: false, message: "" };
+const MAX_GALLERY_IMAGES = 5;
+const MAX_TOTAL_UPLOAD_BYTES = 4 * 1024 * 1024;
+
+async function compressImage(file: File): Promise<File> {
+  const bitmap = await createImageBitmap(file);
+  const scale = Math.min(1, 1600 / Math.max(bitmap.width, bitmap.height));
+  const canvas = document.createElement("canvas");
+  canvas.width = Math.max(1, Math.round(bitmap.width * scale));
+  canvas.height = Math.max(1, Math.round(bitmap.height * scale));
+  canvas.getContext("2d")?.drawImage(bitmap, 0, 0, canvas.width, canvas.height);
+  bitmap.close();
+
+  const blob = await new Promise<Blob | null>((resolve) =>
+    canvas.toBlob(resolve, "image/webp", 0.78)
+  );
+
+  if (!blob) throw new Error("Image compression failed.");
+  return new File([blob], `${file.name.replace(/\.[^.]+$/, "")}.webp`, {
+    type: "image/webp",
+  });
+}
+
+function setInputFiles(input: HTMLInputElement, files: File[]) {
+  const dataTransfer = new DataTransfer();
+  files.forEach((file) => dataTransfer.items.add(file));
+  input.files = dataTransfer.files;
+}
 
 export default function AddProductModal() {
   const router = useRouter();
@@ -13,17 +40,30 @@ export default function AddProductModal() {
   const [open, setOpen] = useState(false);
   const [slug, setSlug] = useState("");
   const [preview, setPreview] = useState<string | null>(null);
+  const [mainUploadBytes, setMainUploadBytes] = useState(0);
+  const [uploadMessage, setUploadMessage] = useState("");
 
   // NEW: track previews for the gallery images (an array, since there can be many)
   const [galleryPreviews, setGalleryPreviews] = useState<string[]>([]);
 
   const [state, formAction, isPending] = useActionState(
     async (prevState: typeof initialState, formData: FormData) => {
-      const result = await addProduct(prevState, formData);
+      let result: typeof initialState;
+      try {
+        result = await addProduct(prevState, formData);
+      } catch (error) {
+        console.error("Add product failed:", error);
+        return {
+          success: false,
+          message: "Product upload failed. Please use smaller images and try again.",
+        };
+      }
 
       if (result.success) {
         setOpen(false);
         setPreview(null);
+        setMainUploadBytes(0);
+        setUploadMessage("");
         setGalleryPreviews([]);
         startTransition(() => {
           router.refresh();
@@ -94,9 +134,22 @@ export default function AddProductModal() {
                 type="file"
                 name="image"
                 accept="image/*"
-                onChange={(e) => {
+                onChange={async (e) => {
                   const file = e.target.files?.[0];
-                  if (file) setPreview(URL.createObjectURL(file));
+                  if (!file) return;
+
+                  try {
+                    const compressed = await compressImage(file);
+                    setInputFiles(e.currentTarget, [compressed]);
+                    setMainUploadBytes(compressed.size);
+                    setUploadMessage("");
+                    setPreview(URL.createObjectURL(compressed));
+                  } catch {
+                    setPreview(null);
+                    setMainUploadBytes(0);
+                    setUploadMessage("This image could not be processed.");
+                    e.currentTarget.value = "";
+                  }
                 }}
                 required
                 className="w-full border rounded-lg px-3 py-2"
@@ -118,16 +171,43 @@ export default function AddProductModal() {
                 name="galleryImages"
                 accept="image/*"
                 multiple
-                onChange={(e) => {
+                onChange={async (e) => {
                   const files = e.target.files;
                   if (!files) return;
 
-                  // Convert the FileList into a real array, then build
-                  // a temporary preview URL for each file.
-                  const urls = Array.from(files).map((file) =>
-                    URL.createObjectURL(file)
-                  );
-                  setGalleryPreviews(urls);
+                  if (files.length > MAX_GALLERY_IMAGES) {
+                    e.currentTarget.value = "";
+                    setGalleryPreviews([]);
+                    setUploadMessage(`Choose up to ${MAX_GALLERY_IMAGES} gallery images.`);
+                    return;
+                  }
+
+                  try {
+                    const compressed = await Promise.all(
+                      Array.from(files).map(compressImage)
+                    );
+                    const totalBytes = compressed.reduce(
+                      (total, file) => total + file.size,
+                      0
+                    );
+
+                    if (mainUploadBytes + totalBytes > MAX_TOTAL_UPLOAD_BYTES) {
+                      e.currentTarget.value = "";
+                      setGalleryPreviews([]);
+                      setUploadMessage("The selected images are too large. Choose fewer or smaller images.");
+                      return;
+                    }
+
+                    setInputFiles(e.currentTarget, compressed);
+                    setUploadMessage("");
+                    setGalleryPreviews(
+                      compressed.map((file) => URL.createObjectURL(file))
+                    );
+                  } catch {
+                    e.currentTarget.value = "";
+                    setGalleryPreviews([]);
+                    setUploadMessage("One of the gallery images could not be processed.");
+                  }
                 }}
                 className="w-full border rounded-lg px-3 py-2"
               />
@@ -165,6 +245,8 @@ export default function AddProductModal() {
               rows={3}
               className="w-full border rounded-lg px-3 py-2"
             />
+
+            {uploadMessage && <p className="text-sm text-red-600">{uploadMessage}</p>}
 
             <div className="flex gap-2">
               <button
