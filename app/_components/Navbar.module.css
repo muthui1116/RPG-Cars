@@ -2,6 +2,7 @@
 .navbar {
   background-color: #eff4fa; /* very light sky blue */
   width: 100%;
+  box-shadow: 0 1px 3px rgba(1, 87, 155, 0.08);
 }
 
 /* holds the logo + buttons + hamburger, this is where the 2px margin goes */
@@ -26,12 +27,12 @@
 /* margin-left: auto pushes this all the way to the right, next to the logo */
 .navButtons {
   display: flex;
+  align-items: center;
   gap: 10px;
   margin-left: auto;
 }
 
 /* REGISTER button: rounded, blue background */
-/* note: this is now a Next.js <Link> (renders as <a>), so we reset link defaults */
 .registerBtn {
   display: inline-block;
   text-decoration: none;
@@ -45,7 +46,6 @@
   transition: background-color 0.3s ease, box-shadow 0.3s ease;
 }
 
-/* on hover, a deeper professional blue + soft shadow */
 .registerBtn:hover {
   background-color: #0d47a1;
   box-shadow: 0 2px 8px rgba(13, 71, 161, 0.4);
@@ -65,14 +65,125 @@
   transition: background-color 0.3s ease, color 0.3s ease;
 }
 
-/* on hover, a subtle professional fill instead of loud color */
 .loginBtn:hover {
   background-color: #e3f2fd;
   color: #0d47a1;
   border-color: #0d47a1;
 }
 
-/* hamburger icon, hidden by default (desktop) */
+/* ===== Logged-in user menu (desktop) ===== */
+
+.userMenuWrapper {
+  position: relative;
+}
+
+.userTrigger {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  padding: 6px 14px; /* was 5px 14px 5px 5px */
+  background-color: #ffffff;
+  border: 1.5px solid #bfe0fb;
+  border-radius: 999px;
+  cursor: pointer;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+.userTrigger:hover {
+  border-color: #2196f3;
+  box-shadow: 0 2px 8px rgba(33, 150, 243, 0.15);
+}
+
+.userInfo {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  line-height: 1.2;
+}
+
+.userName {
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: #01579b;
+  max-width: 140px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.roleBadge {
+  font-size: 0.63rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  padding: 0.05rem 0.45rem;
+  border-radius: 999px;
+  margin-top: 0.15rem;
+  width: fit-content;
+}
+
+.roleBadgeAdmin {
+  background-color: #0d47a1;
+  color: #ffffff;
+}
+
+.roleBadgeCustomer {
+  background-color: #e3f2fd;
+  color: #2196f3;
+}
+
+.chevron {
+  color: #64b5f6;
+  transition: transform 0.2s ease;
+  flex-shrink: 0;
+}
+
+.chevronOpen {
+  transform: rotate(180deg);
+}
+
+.userDropdown {
+  position: absolute;
+  top: calc(100% + 0.5rem);
+  right: 0;
+  min-width: 200px;
+  background-color: #ffffff;
+  border: 1px solid #d6e9fb;
+  border-radius: 12px;
+  box-shadow: 0 10px 28px rgba(1, 87, 155, 0.15);
+  padding: 0.4rem;
+  z-index: 50;
+}
+
+.dropdownItem {
+  display: block;
+  width: 100%;
+  text-align: left;
+  padding: 0.6rem 0.8rem;
+  font-size: 0.85rem;
+  font-weight: 500;
+  color: #01579b;
+  background: transparent;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  text-decoration: none;
+  transition: background-color 0.15s ease;
+}
+
+.dropdownItem:hover {
+  background-color: #e3f2fd;
+}
+
+.dropdownItemDanger {
+  color: #d32f2f;
+}
+
+.dropdownItemDanger:hover {
+  background-color: #fdecea;
+}
+
+/* ===== hamburger icon, hidden by default (desktop) ===== */
 .hamburger {
   display: none;
   flex-direction: column;
@@ -96,6 +207,16 @@
 /* dropdown menu for small screens, hidden by default */
 .mobileMenu {
   display: none;
+}
+
+/* user identity row shown at top of the mobile menu */
+.mobileUserRow {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  padding: 8px 2px 14px;
+  border-bottom: 1px solid #d6e9fb;
+  margin-bottom: 4px;
 }
 
 /* ===== small screens ===== */

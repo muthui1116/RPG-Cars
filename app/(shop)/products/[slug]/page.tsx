@@ -1,7 +1,7 @@
-// app/products/[slug]/page.tsx
 import { notFound } from "next/navigation";
 import db from "../../../lib/db";
 import ProductGallery from "./ProductGallery";
+import AddToCartButton from "./AddToCartButton";
 
 type ProductDetailsPageProps = {
   params: Promise<{ slug: string }>;
@@ -26,7 +26,6 @@ export default async function ProductDetailsPage({
     notFound();
   }
 
-  // Fetch any extra gallery images for this product
   const galleryResult = await db.query(
     `SELECT image_url FROM product_images
      WHERE product_id = $1
@@ -34,9 +33,6 @@ export default async function ProductDetailsPage({
     [product.id]
   );
 
-  // Combine the main image with the extra gallery images into one array.
-  // The main image always comes first and we keep at least four entries
-  // so the gallery always shows a full product image set.
   const galleryImages = [
     product.image_url,
     ...galleryResult.rows.map((row) => row.image_url),
@@ -49,10 +45,8 @@ export default async function ProductDetailsPage({
   return (
     <div className="max-w-5xl mx-auto px-4 py-10">
       <div className="grid grid-cols-1 md:grid-cols-2 gap-10">
-        {/* Image + gallery (client component, handles clicking) */}
         <ProductGallery images={galleryImages} productName={product.name} />
 
-        {/* Details */}
         <div className="space-y-4">
           {product.category && (
             <span className="inline-block text-[11px] font-medium uppercase tracking-wide text-gray-500 bg-gray-100 rounded-full px-2 py-0.5">
@@ -60,9 +54,7 @@ export default async function ProductDetailsPage({
             </span>
           )}
 
-          <h1 className="text-2xl font-bold text-gray-900">
-            {product.name}
-          </h1>
+          <h1 className="text-2xl font-bold text-gray-900">{product.name}</h1>
 
           <p className="text-xl font-bold text-gray-900">
             ${Number(product.price).toFixed(2)}
@@ -74,9 +66,15 @@ export default async function ProductDetailsPage({
             </p>
           )}
 
-          <button className="mt-4 w-full sm:w-auto px-6 py-3 bg-gray-900 text-white rounded-lg font-medium hover:bg-gray-800 transition-colors">
-            Add to Cart
-          </button>
+          <AddToCartButton
+            product={{
+              id: product.id,
+              name: product.name,
+              price: Number(product.price),
+              image_url: product.image_url,
+              slug: product.slug,
+            }}
+          />
         </div>
       </div>
     </div>

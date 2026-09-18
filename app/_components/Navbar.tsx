@@ -1,42 +1,100 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useRef, useEffect } from "react";
 import Link from "next/link";
 import { useSession, signOut } from "next-auth/react";
 import styles from "./Navbar.module.css";
 
+const ADMIN_ROLE = 1;
+
+function getFirstName(name?: string | null, email?: string | null) {
+  if (name) return name.trim().split(" ")[0];
+  if (email) return email.split("@")[0];
+  return "";
+}
+
 export default function Navbar() {
-  // this state controls whether the mobile menu (hamburger dropdown) is open or closed
   const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const [isUserMenuOpen, setIsUserMenuOpen] = useState(false);
+  const userMenuRef = useRef<HTMLDivElement>(null);
+
   const { data: session, status } = useSession();
   const isLoggedIn = status === "authenticated";
+  const isAdmin = isLoggedIn && session?.user?.role === ADMIN_ROLE;
 
-  const toggleMenu = () => {
-    setIsMenuOpen(!isMenuOpen);
-  };
+  const toggleMenu = () => setIsMenuOpen((prev) => !prev);
+  const toggleUserMenu = () => setIsUserMenuOpen((prev) => !prev);
+
+  const firstName = getFirstName(session?.user?.name, session?.user?.email);
+
+  useEffect(() => {
+    function handleClickOutside(e: MouseEvent) {
+      if (userMenuRef.current && !userMenuRef.current.contains(e.target as Node)) {
+        setIsUserMenuOpen(false);
+      }
+    }
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, []);
 
   return (
     <nav className={styles.navbar}>
       <div className={styles.navContent}>
-        {/* logo on the left, links back to the homepage */}
         <Link href="/" className={styles.logo}>
-          RPG-Cars
+          RPG-Zoe
         </Link>
 
-        {/* normal buttons, visible on big screens, hidden on small screens */}
         <div className={styles.navButtons}>
           {isLoggedIn ? (
-            <>
-              <span className={styles.userGreeting}>
-                {session.user?.name ?? session.user?.email}
-              </span>
+            <div className={styles.userMenuWrapper} ref={userMenuRef}>
               <button
-                onClick={() => signOut({ callbackUrl: "/" })}
-                className={styles.loginBtn}
+                onClick={toggleUserMenu}
+                className={styles.userTrigger}
+                aria-expanded={isUserMenuOpen}
               >
-                Logout
+                <span className={styles.userInfo}>
+                  <span className={styles.userName}>{firstName}</span>
+                  <span
+                    className={`${styles.roleBadge} ${
+                      isAdmin ? styles.roleBadgeAdmin : styles.roleBadgeCustomer
+                    }`}
+                  >
+                    {isAdmin ? "Admin" : "Customer"}
+                  </span>
+                </span>
+                <svg
+                  className={`${styles.chevron} ${isUserMenuOpen ? styles.chevronOpen : ""}`}
+                  width="14"
+                  height="14"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="2"
+                >
+                  <path d="M6 9l6 6 6-6" />
+                </svg>
               </button>
-            </>
+
+              {isUserMenuOpen && (
+                <div className={styles.userDropdown}>
+                  {isAdmin && (
+                    <Link
+                      href="/admin/orders"
+                      className={styles.dropdownItem}
+                      onClick={() => setIsUserMenuOpen(false)}
+                    >
+                      Admin Dashboard
+                    </Link>
+                  )}
+                  <button
+                    onClick={() => signOut({ callbackUrl: "/" })}
+                    className={`${styles.dropdownItem} ${styles.dropdownItemDanger}`}
+                  >
+                    Logout
+                  </button>
+                </div>
+              )}
+            </div>
           ) : (
             <>
               <Link href="/login" className={styles.loginBtn}>
@@ -49,7 +107,6 @@ export default function Navbar() {
           )}
         </div>
 
-        {/* hamburger icon, only visible on small screens */}
         <button className={styles.hamburger} onClick={toggleMenu}>
           <span className={styles.bar}></span>
           <span className={styles.bar}></span>
@@ -57,16 +114,38 @@ export default function Navbar() {
         </button>
       </div>
 
-      {/* dropdown menu that shows on small screens when hamburger is clicked */}
       {isMenuOpen && (
         <div className={styles.mobileMenu}>
           {isLoggedIn ? (
-            <button
-              onClick={() => signOut({ callbackUrl: "/" })}
-              className={styles.loginBtn}
-            >
-              Logout
-            </button>
+            <>
+              <div className={styles.mobileUserRow}>
+                <span className={styles.userInfo}>
+                  <span className={styles.userName}>{firstName}</span>
+                  <span
+                    className={`${styles.roleBadge} ${
+                      isAdmin ? styles.roleBadgeAdmin : styles.roleBadgeCustomer
+                    }`}
+                  >
+                    {isAdmin ? "Admin" : "Customer"}
+                  </span>
+                </span>
+              </div>
+              {isAdmin && (
+                <Link
+                  href="/admin/orders"
+                  className={styles.loginBtn}
+                  onClick={() => setIsMenuOpen(false)}
+                >
+                  Admin Dashboard
+                </Link>
+              )}
+              <button
+                onClick={() => signOut({ callbackUrl: "/" })}
+                className={styles.loginBtn}
+              >
+                Logout
+              </button>
+            </>
           ) : (
             <>
               <Link href="/login" className={styles.loginBtn}>
