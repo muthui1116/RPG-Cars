@@ -2,11 +2,11 @@ import NextAuth from "next-auth";
 import Google from "next-auth/providers/google";
 import Credentials from "next-auth/providers/credentials";
 import bcrypt from "bcrypt";
-import db from "@/app/lib/db";
-import { checkRateLimit } from "@/app/lib/rateLimit"; // ← NEW: import the function
+import db from "../../lib/db";
+import { checkRateLimit } from "../../lib/rateLimit"; // ← NEW: import the function
 
-const LOGIN_ATTEMPT_LIMIT = 15;   // ← NEW: how many tries allowed
-const LOGIN_LOCK_MINUTES = 3;     // ← NEW: how long the lockout lasts
+const LOGIN_ATTEMPT_LIMIT = 30;   // ← NEW: how many tries allowed
+const LOGIN_LOCK_MINUTES = 5;     // ← NEW: how long the lockout lasts
 
 const nextAuth = NextAuth({
 	providers: [

@@ -4,8 +4,8 @@ import type { NextRequest } from "next/server";
 import { auth } from "./app/api/[...nextauth]/route";
 import { checkRateLimit } from "@/app/lib/rateLimit";
 
-const PAGE_LOAD_LIMIT = 30;
-const PAGE_LOAD_LOCK_MINUTES = 3;
+const PAGE_LOAD_LIMIT = 60;
+const PAGE_LOAD_LOCK_MINUTES = 5;
 
 function getClientIp(request: NextRequest): string {
   const forwardedFor = request.headers.get("x-forwarded-for");

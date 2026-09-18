@@ -2,8 +2,8 @@
 
 import { revalidatePath } from "next/cache";
 import { auth } from "../../api/[...nextauth]/route";
-import db from "@/app/lib/db";
-import { sendOrderStatusEmail } from "@/app/lib/email";
+import db from "../../lib/db";
+import { sendOrderStatusEmail } from "../../lib/email";
 
 const ADMIN_ROLE = 1;
 

@@ -1,5 +1,5 @@
 // lib/rateLimit.ts
-import db from "@/app/lib/db";
+import db from "../lib/db";
 
 export async function checkRateLimit(
   identifier: string,
