@@ -36,9 +36,10 @@ export default function LoginForm() {
         redirect: false,
       });
 
+      /* Rate-limit response handling disabled with the rate-limit feature.
       if (res?.error === "RateLimited") {
         setError("Too many login attempts. Please try again in a few minutes.");
-      } else if (res?.error) {
+      } else */ if (res?.error) {
         setError("Invalid email or password.");
       } else {
         router.push("/");
